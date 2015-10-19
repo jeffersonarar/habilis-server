@@ -11,6 +11,7 @@ import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 import javax.xml.bind.annotation.XmlRootElement;
 
+import org.json.JSONArray;
 import org.json.JSONObject;
 
 import br.com.Controller.ConteudoController;
@@ -18,6 +19,7 @@ import br.com.Controller.DisciplinaController;
 import br.com.core.Model.Conteudo;
 import br.com.core.Model.Disciplina;
 import br.com.core.Model.Estagiario;
+import br.com.core.Model.Matriz;
 
 import com.google.gson.Gson;
 
@@ -27,6 +29,7 @@ public class ConteudoWS {
 	private DisciplinaController disController = new DisciplinaController();
 	private ConteudoController conController = new ConteudoController();
 	private List<?> conteudoList = new ArrayList<Conteudo>();
+	private List<?> disciplinaList = new ArrayList<Disciplina>();
 	
 	@POST
 	@Path("all")
@@ -44,11 +47,18 @@ public class ConteudoWS {
 			
 			
 			if(nome != null){
-				Disciplina disciplina = (Disciplina) disController.listarCriterioEqual(new Disciplina(), nome, true);
-				conteudoList = conController.buscarForeign(new Conteudo(), disciplina);
-;
-				 if(conteudoList.isEmpty()){
-					 
+				disciplinaList = disController.listarCriterioEqual(new Disciplina(), nome, true);
+				Disciplina disciplina2 = null;
+				
+				for (Object disciplina : disciplinaList) {
+					 disciplina2 = (Disciplina) disciplina;
+				}
+				conteudoList = conController.buscarForeign(new Conteudo(), disciplina2);
+				
+				 if(!conteudoList.isEmpty()){
+					Gson gson = new Gson();
+					String json = gson.toJson(conteudoList);
+					return Response.ok(json, MediaType.APPLICATION_JSON).build();
 				//	 String resposta = gerarJson(conteudoList);
 					// return Response.ok(resposta, MediaType.APPLICATION_JSON).build();
 				 }
@@ -64,14 +74,7 @@ public class ConteudoWS {
 	}
 
 	
-/*	
-	private String gerarJson(List<?> conteudoList) {
-		for(int i = 0; i<conteudoList.l; i++){
-			
-			
-		}
-		return null;
-	}*/
+
 
 
 

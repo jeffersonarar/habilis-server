@@ -13,6 +13,7 @@ import javax.xml.bind.annotation.XmlRootElement;
 
 import org.json.JSONObject;
 
+import com.google.gson.Gson;
 import com.google.gson.JsonObject;
 
 import br.com.Controller.EstagiarioController;
@@ -48,7 +49,9 @@ public class EstagiarioWS {
 				 Estagiario estagiario = new Estagiario();
 				 estagiario = (Estagiario) estController.validarLogin(estagiario, cpf, senha);
 				 if(estagiario != null){
-					 String resposta = gerarJsonUsuario(estagiario);
+						Gson gson = new Gson();
+						String resposta = gson.toJson(estagiario);
+					// String resposta = gerarJsonUsuario(estagiario);
 					 return Response.ok(resposta, MediaType.APPLICATION_JSON).build();
 				 }
 			} else {
