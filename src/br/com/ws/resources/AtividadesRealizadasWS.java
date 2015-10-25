@@ -1,6 +1,7 @@
 package br.com.ws.resources;
 
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.List;
 
 import javax.ws.rs.Consumes;
@@ -15,29 +16,25 @@ import org.json.JSONObject;
 
 import br.com.Controller.AtividadeController;
 import br.com.Controller.AtividadesRealizadasController;
-import br.com.Controller.CategoriaController;
 import br.com.Controller.ConteudoController;
-import br.com.Controller.DisciplinaController;
+import br.com.Controller.ContratoEstagioController;
 import br.com.core.Model.Atividade;
 import br.com.core.Model.AtividadesRealizadas;
-import br.com.core.Model.Categoria;
 import br.com.core.Model.Conteudo;
-import br.com.core.Model.Disciplina;
+import br.com.core.Model.ContratoEstagio;
 import br.com.core.Util.Retorno;
 
 @XmlRootElement
 @Path("/atividadesrealizadas")
 public class AtividadesRealizadasWS {
-	 private CategoriaController catController = new CategoriaController();
 	 private AtividadeController atiController = new AtividadeController();
-	 private DisciplinaController disController = new DisciplinaController();
 	 private ConteudoController conController = new ConteudoController();
 	 private AtividadesRealizadasController atiReaController = new AtividadesRealizadasController();
+	 private ContratoEstagioController conEstController = new ContratoEstagioController();
 	 
+	 private ContratoEstagio contrato = new ContratoEstagio();
 	 private List<?> atividadeList = new ArrayList<Atividade>();
-	 private List<?> categoriaList = new ArrayList<Categoria>();
 	 private List<?> conteudoList = new ArrayList<Conteudo>();
-	 private List<?> disciplinaList = new ArrayList<Disciplina>();
 	 private AtividadesRealizadas atividadesRealizadas = new AtividadesRealizadas();
 	
 
@@ -50,58 +47,45 @@ public class AtividadesRealizadasWS {
 			Retorno ret = new Retorno(false);
 
 			JSONObject dados_array_json = new JSONObject(json);
-	
-		//	String nomeDisciplina = null;
 			String nomeAtividade = null;
 			String nomeConteudo = null;
-		//	String nomeCategoria = null;
+			long idContrato = 0;
+
 	
 		
 			if (!dados_array_json.isNull("conteudo")) {
 				nomeConteudo = dados_array_json.getString("conteudo");
 			}
-			/*if (!dados_array_json.isNull("categoria")) {
-				nomeCategoria = dados_array_json.getString("categoria");
+			
+			if (!dados_array_json.isNull("contrato")) {
+				idContrato = dados_array_json.getLong("contrato");
 			}
-			if (!dados_array_json.isNull("disciplina")) {
-				nomeConteudo = dados_array_json.getString("disciplina");
-			}*/
 			
 			if (!dados_array_json.isNull("atividade")) {
 				nomeAtividade = dados_array_json.getString("atividade");
 			}
 	
-			if (nomeAtividade != null && nomeConteudo != null) {
-			/*	Disciplina disciplina = new Disciplina();
-				Categoria categoria = new Categoria();*/
+			if (nomeAtividade != null && nomeConteudo != null && idContrato != 0) {
+
 				Conteudo conteudo = new Conteudo();
 				Atividade atividade = new Atividade();
-				
-			//	categoriaList = catController.listarCriterioEqual(new Categoria(), nomeCategoria, true);
+
 				atividadeList = atiController.listarCriterioEqual(new Atividade(), nomeAtividade, true);
 				conteudoList = conController.listarCriterioEqual(new Conteudo(), nomeConteudo, true);
-			//	disciplinaList = disController.listarCriterioEqual(new Disciplina(), nomeDisciplina, true);
-				
-			/*	for (Object categoria2 : categoriaList) {
-					categoria2 = categoria;
-				}
-				
-				for (Object disciplina2 : disciplinaList) {
-					disciplina2 = disciplina;
-				}
-				*/
+				contrato = (ContratoEstagio) conEstController.buscarPorId(new ContratoEstagio(), idContrato);
+
 				for (Object conteudo2 : conteudoList) {
-					conteudo2 = conteudo;
+					conteudo = (Conteudo) conteudo2;
 				}
 				
 				for (Object atividade2 : atividadeList) {
-					atividade2 = atividade;
+					atividade = (Atividade) atividade2;
 				}
 				
-				
+				atividadesRealizadas.setData_cadastro(new Date());
 				atividadesRealizadas.setAtividade(atividade);
 				atividadesRealizadas.setConteudo(conteudo);
-				//atividadesRealizadas.setContratoEstagio(contratoEstagio);
+				atividadesRealizadas.setContratoEstagio(contrato);
 				ret = atiReaController.salvar(atividadesRealizadas);
 				return Response.ok("", MediaType.APPLICATION_JSON).build();
 			}else{

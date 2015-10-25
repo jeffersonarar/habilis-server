@@ -4,6 +4,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 import javax.ws.rs.Consumes;
+import javax.ws.rs.GET;
 import javax.ws.rs.POST;
 import javax.ws.rs.Path;
 import javax.ws.rs.Produces;
@@ -15,9 +16,7 @@ import org.json.JSONObject;
 
 import br.com.Controller.ContratoEstagioController;
 import br.com.Controller.EstagiarioController;
-import br.com.core.Model.Conteudo;
 import br.com.core.Model.ContratoEstagio;
-import br.com.core.Model.Disciplina;
 import br.com.core.Model.Estagiario;
 
 import com.google.gson.Gson;
@@ -31,6 +30,7 @@ public class ContratoEstagioWS {
 	private List<?> contratoEstagioList = new ArrayList<ContratoEstagio>();
 	private EstagiarioController estController = new EstagiarioController();
 	private List<?> estagiarioList = new ArrayList<Estagiario>();
+	private ContratoEstagio contrato = new ContratoEstagio();
 	
 
 	@SuppressWarnings("unused")
@@ -61,9 +61,40 @@ public class ContratoEstagioWS {
 						Gson gson = new Gson();
 						String json = gson.toJson(contratoEstagioList);
 						return Response.ok(json, MediaType.APPLICATION_JSON).build();
-					//	 String resposta = gerarJson(conteudoList);
-						// return Response.ok(resposta, MediaType.APPLICATION_JSON).build();
 					 }
+				return Response.ok("", MediaType.APPLICATION_JSON).build();
+			} else {
+				return Response.ok("", MediaType.APPLICATION_JSON).build();
+			}	
+		}catch(Exception e){
+			 return Response.serverError().entity(e.getMessage()).build();
+		}
+	}
+	
+	
+	@GET
+	@Path("id")
+	@Produces(MediaType.APPLICATION_JSON)
+	@Consumes(MediaType.APPLICATION_JSON)
+	public Response buscarContrato(String jsonrecebido) {
+		try{
+			JSONObject dados_array_json = new JSONObject(jsonrecebido);
+			String id = null; 
+			
+			if(!dados_array_json.isNull("id")){
+				id = dados_array_json.getString("id");
+			}
+
+			if(id != null){
+				
+				
+				contrato = (ContratoEstagio) conEstController.buscarPorId(new ContratoEstagio(), Long.parseLong(id));
+		
+				 if(contrato!=null){
+						Gson gson = new Gson();
+						String json = gson.toJson(contrato);
+						return Response.ok(json, MediaType.APPLICATION_JSON).build();
+				   }
 				return Response.ok("", MediaType.APPLICATION_JSON).build();
 			} else {
 				return Response.ok("", MediaType.APPLICATION_JSON).build();
