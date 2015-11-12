@@ -18,6 +18,7 @@ import br.com.Controller.AtividadeController;
 import br.com.Controller.AtividadesRealizadasController;
 import br.com.Controller.ConteudoController;
 import br.com.Controller.ContratoEstagioController;
+import br.com.Util.Helpers;
 import br.com.core.Model.Atividade;
 import br.com.core.Model.AtividadesRealizadas;
 import br.com.core.Model.Conteudo;
@@ -27,70 +28,103 @@ import br.com.core.Util.Retorno;
 @XmlRootElement
 @Path("/atividadesrealizadas")
 public class AtividadesRealizadasWS {
-	 private AtividadeController atiController = new AtividadeController();
-	 private ConteudoController conController = new ConteudoController();
-	 private AtividadesRealizadasController atiReaController = new AtividadesRealizadasController();
-	 private ContratoEstagioController conEstController = new ContratoEstagioController();
-	 
-	 private ContratoEstagio contrato = new ContratoEstagio();
-	 private List<?> atividadeList = new ArrayList<Atividade>();
-	 private List<?> conteudoList = new ArrayList<Conteudo>();
-	 private AtividadesRealizadas atividadesRealizadas = new AtividadesRealizadas();
-	
+	private AtividadeController atiController = new AtividadeController();
+	private ConteudoController conController = new ConteudoController();
+	private AtividadesRealizadasController atiReaController = new AtividadesRealizadasController();
+	private ContratoEstagioController conEstController = new ContratoEstagioController();
+
+	private ContratoEstagio contrato = new ContratoEstagio();
+	private List<?> atividadeList = new ArrayList<Atividade>();
+	private List<?> conteudoList = new ArrayList<Conteudo>();
+	private AtividadesRealizadas atividadesRealizadas = new AtividadesRealizadas();
+	Helpers help = new Helpers();
 
 	@POST
 	@Path("salvar")
 	@Consumes(MediaType.APPLICATION_JSON)
 	@Produces(MediaType.APPLICATION_JSON)
 	public Response salvar(String json) {
-	
-			Retorno ret = new Retorno(false);
 
-			JSONObject dados_array_json = new JSONObject(json);
-			String nomeAtividade = null;
-			String nomeConteudo = null;
-			long idContrato = 0;
+		Retorno ret = new Retorno(false);
 
-	
-		
-			if (!dados_array_json.isNull("conteudo")) {
-				nomeConteudo = dados_array_json.getString("conteudo");
+		JSONObject dados_array_json = new JSONObject(json);
+		String nomeAtividade = null;
+		String nomeConteudo = null;
+		String dataInicio = null;
+		String dataFim = null;
+		long idContrato = 0;
+
+		if (!dados_array_json.isNull("conteudo")) {
+			nomeConteudo = dados_array_json.getString("conteudo");
+		}
+
+		if (!dados_array_json.isNull("contrato")) {
+			idContrato = dados_array_json.getLong("contrato");
+		}
+
+		if (!dados_array_json.isNull("atividade")) {
+			nomeAtividade = dados_array_json.getString("atividade");
+		}
+
+		if (!dados_array_json.isNull("data_inicio")) {
+			dataInicio = dados_array_json.getString("data_inicio");
+		}
+
+		if (!dados_array_json.isNull("data_fim")) {
+			dataFim = dados_array_json.getString("data_fim");
+		}
+
+		if (nomeAtividade != null && nomeConteudo != null && idContrato != 0) {
+
+			Conteudo conteudo = new Conteudo();
+			Atividade atividade = new Atividade();
+
+			atividadeList = atiController.listarCriterioEqual(new Atividade(),
+					nomeAtividade, true);
+			conteudoList = conController.listarCriterioEqual(new Conteudo(),
+					nomeConteudo, true);
+			contrato = (ContratoEstagio) conEstController.buscarPorId(
+					new ContratoEstagio(), idContrato);
+
+			for (Object conteudo2 : conteudoList) {
+				conteudo = (Conteudo) conteudo2;
 			}
-			
-			if (!dados_array_json.isNull("contrato")) {
-				idContrato = dados_array_json.getLong("contrato");
+
+			for (Object atividade2 : atividadeList) {
+				atividade = (Atividade) atividade2;
 			}
-			
-			if (!dados_array_json.isNull("atividade")) {
-				nomeAtividade = dados_array_json.getString("atividade");
-			}
-	
-			if (nomeAtividade != null && nomeConteudo != null && idContrato != 0) {
 
-				Conteudo conteudo = new Conteudo();
-				Atividade atividade = new Atividade();
-
-				atividadeList = atiController.listarCriterioEqual(new Atividade(), nomeAtividade, true);
-				conteudoList = conController.listarCriterioEqual(new Conteudo(), nomeConteudo, true);
-				contrato = (ContratoEstagio) conEstController.buscarPorId(new ContratoEstagio(), idContrato);
-
-				for (Object conteudo2 : conteudoList) {
-					conteudo = (Conteudo) conteudo2;
+			atividadesRealizadas.setData_cadastro(new Date());
+			atividadesRealizadas.setAtividade(atividade);
+			if (!dataFim.equals("") && dataFim != null) {
+				try {
+					
+					atividadesRealizadas.setData_fim(help.formataData(dataFim));
+				} catch (Exception e) {
+					// TODO Auto-generated catch block
+					
+					e.printStackTrace();
 				}
-				
-				for (Object atividade2 : atividadeList) {
-					atividade = (Atividade) atividade2;
-				}
-				
-				atividadesRealizadas.setData_cadastro(new Date());
-				atividadesRealizadas.setAtividade(atividade);
-				atividadesRealizadas.setConteudo(conteudo);
-				atividadesRealizadas.setContratoEstagio(contrato);
-				ret = atiReaController.salvar(atividadesRealizadas);
-				return Response.ok("", MediaType.APPLICATION_JSON).build();
-			}else{
-				return Response.ok("", MediaType.APPLICATION_JSON).build();
 			}
+			if (!dataInicio.equals("") && dataInicio != null) {
+				try {
+					atividadesRealizadas.setData_inicio(help.formataData(dataInicio));
+				} catch (Exception e) {
+					// TODO Auto-generated catch block
+					e.printStackTrace();
+				}
+			}
+
+			
+			
+			atividadesRealizadas.setConteudo(conteudo);
+			atividadesRealizadas.setContratoEstagio(contrato);
+			ret = atiReaController.salvar(atividadesRealizadas);
+			return Response.ok(ret.getMensagem(), MediaType.APPLICATION_JSON)
+					.build();
+		} else {
+			return Response.ok(null, MediaType.APPLICATION_JSON).build();
+		}
 
 	}
 
@@ -98,7 +132,8 @@ public class AtividadesRealizadasWS {
 		return atividadesRealizadas;
 	}
 
-	public void setAtividadesRealizadas(AtividadesRealizadas atividadesRealizadas) {
+	public void setAtividadesRealizadas(
+			AtividadesRealizadas atividadesRealizadas) {
 		this.atividadesRealizadas = atividadesRealizadas;
 	}
 }
